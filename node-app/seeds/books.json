@@ -1,0 +1,29 @@
+[
+  {
+    "title": "Harry Potter and the Philosopher's Stone",
+    "publicationYear": 1997,
+    "genre": "Fantasy",
+    "summary": "The first book in the Harry Potter series",
+    "author": {
+      "id": 1
+    }
+  },
+  {
+    "title": "A Game of Thrones",
+    "publicationYear": 1996,
+    "genre": "Fantasy",
+    "summary": "The first book in A Song of Ice and Fire series",
+    "author": {
+      "id": 2
+    }
+  },
+  {
+    "title": "The Fellowship of the Ring",
+    "publicationYear": 1954,
+    "genre": "Fantasy",
+    "summary": "The first book in The Lord of the Rings trilogy",
+    "author": {
+      "id": 3
+    }
+  }
+]

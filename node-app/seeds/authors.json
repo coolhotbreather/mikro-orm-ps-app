@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "name": "J.K. Rowling",
+    "email": "jk.rowling@example.com",
+    "birthdate": "1965-07-31",
+    "biography": "Author of the Harry Potter series"
+  },
+  {
+    "id": 2,
+    "name": "George R.R. Martin",
+    "email": "george.martin@example.com",
+    "birthdate": "1948-09-20",
+    "biography": "Author of A Song of Ice and Fire"
+  },
+  {
+    "id": 3,
+    "name": "J.R.R. Tolkien",
+    "email": "tolkien@example.com",
+    "birthdate": "1892-01-03",
+    "biography": "Author of The Lord of the Rings"
+  }
+]
