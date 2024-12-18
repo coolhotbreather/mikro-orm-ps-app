@@ -33,18 +33,18 @@ router.get('/top', async (req: Request, res: Response) => {
   try {
     const knex = DI.em.getKnex();
 
-    const result = await knex('authors') // Начинаем с таблицы authors (Entity2)
-      .leftJoin('books', 'books.author_id', 'authors.id') // Соединяем с таблицей books (Entity1)
-      .select('authors.id', 'authors.name') // Выбираем нужные поля из authors
-      .count('books.id as count') // Подсчитываем количество связанных книг
-      .groupBy('authors.id', 'authors.name') // Группируем по полям authors
+    const result = await knex('author') // Начинаем с таблицы authors (Entity2)
+      .leftJoin('book', 'book.author_id', 'author.id') // Соединяем с таблицей books (Entity1)
+      .select('author.id', 'author.name') // Выбираем нужные поля из authors
+      .count('book.id as count') // Подсчитываем количество связанных книг
+      .groupBy('author.id', 'author.name') // Группируем по полям authors
       .orderBy('count', 'desc') // Сортируем по убыванию количества книг
       .limit(n); // Ограничиваем результат топ-N
 
     const topAuthors = result.map(row => ({
       id: row.id,
       name: row.name,
-      count: row.count,
+      count: parseInt(row.count as string, 10),
     }));
 
     res.json(topAuthors);
@@ -76,8 +76,6 @@ router.post('/', async (req: Request, res: Response) => {
 
     const author = DI.authors.create(req.body);
 
-    logger.info('Creating new author', { author: author.id });
-
     await DI.em.persistAndFlush(author);
 
     const messageId = getMessageId(author.id);
@@ -88,8 +86,6 @@ router.post('/', async (req: Request, res: Response) => {
       });
 
       await publishMessage(message);
-
-      logger.info('Message sent to RabbitMQ', { messageId });
     }
 
     res.status(201).json(author);

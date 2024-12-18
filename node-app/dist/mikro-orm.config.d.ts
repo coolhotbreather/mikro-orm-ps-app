@@ -1,2 +1,11 @@
-declare const _default: import("@mikro-orm/core").Options<import("@mikro-orm/postgresql").PostgreSqlDriver, import("@mikro-orm/postgresql").EntityManager<import("@mikro-orm/postgresql").PostgreSqlDriver> & import("@mikro-orm/core").EntityManager<import("@mikro-orm/postgresql").IDatabaseDriver<import("@mikro-orm/postgresql").Connection>>>;
-export default _default;
+import { Author, Book, BaseEntity, MessageLog } from './entities';
+declare const config: {
+    entities: (typeof BaseEntity | typeof Book | typeof Author | typeof MessageLog)[];
+    dbName: string;
+    user: string;
+    password: string;
+    host: string;
+    port: number;
+    debug: boolean;
+};
+export default config;

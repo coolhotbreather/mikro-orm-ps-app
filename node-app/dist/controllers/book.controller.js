@@ -7,17 +7,11 @@ exports.BookController = void 0;
 const express_promise_router_1 = __importDefault(require("express-promise-router"));
 const postgresql_1 = require("@mikro-orm/postgresql");
 const server_1 = require("../server");
+const entities_1 = require("../entities");
 const validateBook_1 = require("../validators/validateBook");
 const multer_1 = __importDefault(require("multer"));
+const fs_1 = __importDefault(require("fs"));
 const router = (0, express_promise_router_1.default)();
-// router.get('/', async (req: Request, res: Response) => {
-//   const books = await DI.books.findAll({
-//     populate: ['author'] as const,
-//     orderBy: { title: QueryOrder.DESC },
-//     limit: 20,
-//   });
-//   res.json(books);
-// });
 const AUTHOR = 'author';
 const AUTHOR_ID = 'authorId';
 const DEFAULT_LIST_FIELDS = ['title', 'publicationYear'];
@@ -134,24 +128,28 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     if (!filePath) {
         return res.status(400).json({ message: 'No file uploaded' });
     }
-    const { books } = req.body;
     let importedCount = 0;
-    if (!Array.isArray(books)) {
-        return res.status(400).json({ message: 'Invalid data format' });
-    }
-    await server_1.DI.em.begin();
     try {
+        // Читаем файл
+        const fileContent = await fs_1.default.promises.readFile(filePath, 'utf-8');
+        const books = JSON.parse(fileContent);
+        if (!Array.isArray(books)) {
+            throw new Error('Invalid file format: expected an array of books');
+        }
+        const em = server_1.DI.em.fork();
+        await em.begin();
         for (const bookData of books) {
             const validationErrors = (0, validateBook_1.validateBook)(bookData);
             if (validationErrors.length > 0) {
                 throw new Error(`Invalid data for book: ${JSON.stringify(bookData)}`);
             }
-            const book = server_1.DI.books.create(bookData);
-            server_1.DI.em.persist(book); //persistAndFLush
+            const book = em.create(entities_1.Book, bookData);
+            em.persist(book); // Только persist (flush сделаем позже)
             importedCount++;
         }
-        await server_1.DI.em.commit();
-        return res.json({
+        await em.flush(); // Сохраняем все изменения разом
+        await em.commit();
+        return res.status(200).json({
             success: true,
             importedCount,
         });
@@ -160,6 +158,12 @@ router.post('/upload', upload.single('file'), async (req, res) => {
         await server_1.DI.em.rollback();
         console.error('Error during file upload:', error);
         return res.status(500).json({ message: 'Failed to upload data' });
+    }
+    finally {
+        // Удаляем временный файл
+        if (filePath) {
+            await fs_1.default.promises.unlink(filePath);
+        }
     }
 });
 exports.BookController = router;

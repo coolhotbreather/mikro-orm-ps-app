@@ -1,41 +1,55 @@
 import request from 'supertest';
-import { app } from '../server'; // ваш express app
+import { app, init } from '../server'; // ваш express app
 import { DI } from '../server'; // доступ к DI и базам данных
-import { Book, Author } from '../entities';
-import { validateBook } from '../validators/validateBook';
-import e from 'express';
+import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql';
+import { Author, Book, BaseEntity, MessageLog } from '../entities';
+import { Client } from 'pg';
+import path from 'path';
+import { closeRabbitMQ } from '../services/rabbitmq.service';
+
+const EXISTING_MIGRATED_AUTHOR_ID = 1;
+const SECOND_EXISTING_MIGRATED_AUTHOR_ID = 2;
 
 describe('BookController', () => {
+  let postgresContainer: StartedPostgreSqlContainer;
+  let postgresClient: Client;
   let bookId: number;
-  let authorId: number;
 
-  // Перед каждым тестом, возможно, создадим книгу для тестирования
   beforeAll(async () => {
-    
-    // await init;
-    // DI.orm.config.set('dbName', 'express-test-db');
-    // DI.orm.config.getLogger().setDebugMode(false);
-    // await DI.orm.config.getDriver().reconnect();
-    // await DI.orm.getSchemaGenerator().clearDatabase();
+    postgresContainer = await new PostgreSqlContainer().start();
 
-    const author = DI.authors.create({
-      name: 'Test Author',
-      email: 'test.author@example.com',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    postgresClient = new Client({
+      host: postgresContainer.getHost(),
+      port: postgresContainer.getPort(),
+      database: postgresContainer.getDatabase(),
+      user: postgresContainer.getUsername(),
+      password: postgresContainer.getPassword(),
     });
-    await DI.orm.em.persistAndFlush(author);
+    await postgresClient.connect();
 
-    // Сохраняем ID автора
-    authorId = author.id;
+    // Инициализация Mikro-ORM
+    await init({
+      entities: [Author, Book, BaseEntity, MessageLog],
+      host: postgresContainer.getHost(),
+      port: postgresContainer.getPort(),
+      dbName: postgresContainer.getDatabase(),
+      user: postgresContainer.getUsername(),
+      password: postgresContainer.getPassword(),
+      debug: true,
+    });
+
+    // Запускаем миграции
+    const migrator = DI.orm.getMigrator();
+    await migrator.up();
+
   });
 
   afterAll(async () => {
-    // await DI.orm.getSchemaGenerator().clearDatabase();
-    // await DI.orm.close(true);
-    // DI.server.close();
-    await DI.em.nativeDelete(Book, {});
-    await DI.em.nativeDelete(Author, {});
+    await closeRabbitMQ();
+    await postgresClient.end();
+    await DI.orm.close();
+    await DI.server.close();
+    await postgresContainer.stop();
   });
 
   // Тест для создания книги
@@ -44,7 +58,7 @@ describe('BookController', () => {
       title: 'Test Book',
       publicationYear: 2024,
       genre: 'Fiction',
-      author: { id: authorId },
+      author: { id: EXISTING_MIGRATED_AUTHOR_ID },
     };
 
     const response = await request(app)
@@ -55,7 +69,9 @@ describe('BookController', () => {
     bookId = response.body.id; // Сохраняем ID книги для дальнейших тестов
 
     expect(response.body.title).toBe('Test Book');
-    expect(response.body.author.id).toBe(authorId);
+    expect(response.body.publicationYear).toBe(2024);
+    expect(response.body.genre).toBe('Fiction');
+    expect(response.body.author.id).toBe(EXISTING_MIGRATED_AUTHOR_ID);
   });
 
   // Тест для получения книги по ID
@@ -64,9 +80,10 @@ describe('BookController', () => {
       .get(`/book/${bookId}`)
       .expect(200);
 
-    expect(response.body.id).toBe(bookId);
-    expect(response.body.title).toBe('Test Book');
-    expect(response.body.author.id).toBe(authorId);
+      expect(response.body.title).toBe('Test Book');
+      expect(response.body.publicationYear).toBe(2024);
+      expect(response.body.genre).toBe('Fiction');
+      expect(response.body.author.id).toBe(EXISTING_MIGRATED_AUTHOR_ID);
   });
 
   // Тест для получения ошибки, если книга не найдена
@@ -84,8 +101,13 @@ describe('BookController', () => {
       title: 'Updated Test Book',
       publicationYear: 2025,
       genre: 'Updated Fiction',
-      author: { id: authorId },
+      author: { id: SECOND_EXISTING_MIGRATED_AUTHOR_ID },
     };
+
+    const em = DI.em.fork();
+    const author = await em.findOne(Author, SECOND_EXISTING_MIGRATED_AUTHOR_ID);
+    expect(author).not.toBeNull();
+
 
     const response = await request(app)
       .put(`/book/${bookId}`)
@@ -95,7 +117,7 @@ describe('BookController', () => {
     expect(response.body.title).toBe('Updated Test Book');
     expect(response.body.genre).toBe('Updated Fiction');
     expect(response.body.publicationYear).toBe(2025);
-    expect(response.body.author.id).toBe(authorId);
+    expect(response.body.author).toBe(SECOND_EXISTING_MIGRATED_AUTHOR_ID);
   });
 
   // Тест для ошибки при неверном формате ID
@@ -124,46 +146,46 @@ describe('BookController', () => {
 
   // Тест для получения списка книг с фильтрацией и пагинацией
   it('should return a paginated list of books', async () => {
+
+    const knex = DI.em.getKnex();
+
+    await knex.raw(`
+      INSERT INTO book (id, title, publication_year, genre, author_id, created_at, updated_at) VALUES
+      (10, 'Harry Potter and the Philosopher''s Stone', 1997, 'Fantasy', 1, current_timestamp, current_timestamp),
+      (20, 'Harry Potter and the Chamber of Secrets', 1998, 'Fantasy', 1, current_timestamp, current_timestamp),
+      (30, 'The Hobbit', 1997, 'Fantasy', 2, current_timestamp, current_timestamp),
+      (40, 'The Fellowship of the Ring', 1997, 'Fantasy', 2, current_timestamp, current_timestamp),
+      (50, 'A Game of Thrones', 1997, 'Fantasy', 3, current_timestamp, current_timestamp);
+    `);
+
+    // Ваш основной тест с пагинацией и фильтрацией
     const response = await request(app)
       .post('/book/_list')
       .send({
         page: 1,
         size: 10,
-        title: 'Test Book',
+        genre: "Fantasy",
+        publicationYear: 1997,
       })
       .expect(200);
-
+  
+    console.log("Paginated books:", response.body); // Логируем результат пагинации
+  
     expect(response.body.list).toBeDefined();
     expect(response.body.list.length).toBeGreaterThanOrEqual(0);
     expect(response.body.totalPages).toBeGreaterThanOrEqual(1);
   });
 
-  // Тест для загрузки книг из файла
   it('should upload books from file', async () => {
-    const bookData = [
-      {
-        title: 'Book 1',
-        publicationYear: 2023,
-        genre: 'Genre 1',
-        author: { id: authorId },
-      },
-      {
-        title: 'Book 2',
-        publicationYear: 2024,
-        genre: 'Genre 2',
-        author: { id: authorId },
-      },
-    ];
-
     const response = await request(app)
       .post('/book/upload')
-      .field('books', JSON.stringify(bookData))
-      .attach('file', 'path/to/your/test/file.csv') // Путь к вашему файлу
+      .attach('file', path.resolve(__dirname, '../../seeds/books.json')) // Путь к тестовому файлу
       .expect(200);
-
+  
     expect(response.body.success).toBe(true);
-    expect(response.body.importedCount).toBe(2);
+    expect(response.body.importedCount).toBe(3); // Проверяем, что все книги импортировались
   });
+  
 
   // Тест для ошибки при загрузке файла, если файл отсутствует
   it('should return 400 if no file is uploaded', async () => {
@@ -173,5 +195,6 @@ describe('BookController', () => {
 
     expect(response.body.message).toBe('No file uploaded');
   });
+
 });
 

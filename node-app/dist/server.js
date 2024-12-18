@@ -10,12 +10,11 @@ const express_1 = __importDefault(require("express"));
 const postgresql_1 = require("@mikro-orm/postgresql");
 const controllers_1 = require("./controllers");
 const entities_1 = require("./entities");
-const mikro_orm_config_1 = __importDefault(require("./mikro-orm.config"));
 exports.DI = {};
 exports.app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
-exports.init = (async () => {
-    exports.DI.orm = await postgresql_1.MikroORM.init(mikro_orm_config_1.default);
+const init = async (config) => {
+    exports.DI.orm = await postgresql_1.MikroORM.init(config);
     exports.DI.em = exports.DI.orm.em;
     exports.DI.authors = exports.DI.orm.em.getRepository(entities_1.Author);
     exports.DI.books = exports.DI.orm.em.getRepository(entities_1.Book);
@@ -28,4 +27,5 @@ exports.init = (async () => {
     exports.DI.server = exports.app.listen(port, () => {
         console.log(`MikroORM express TS example started at http://localhost:${port}`);
     });
-})();
+};
+exports.init = init;

@@ -1,12 +1,12 @@
 import 'reflect-metadata';
 import http from 'http';
 import express from 'express';
-// import mikroOrmConfig from './mikro-orm.config';
 import { EntityManager, EntityRepository, MikroORM, RequestContext } from '@mikro-orm/postgresql';
 import { AuthorController, BookController } from './controllers';
-import { Author, BaseEntity, Book } from './entities';
-import { MessageLog } from './entities/MessageLog';
+import { Author, Book } from './entities';
 import mikroOrmConfig from './mikro-orm.config';
+import { closeRabbitMQ, consumeMessages } from './services/rabbitmq.service';
+import amqp, { Connection, Channel } from 'amqplib';
 
 export const DI = {} as {
   server: http.Server;
@@ -14,13 +14,15 @@ export const DI = {} as {
   em: EntityManager,
   authors: EntityRepository<Author>,
   books: EntityRepository<Book>,
+  rabbitConnection: {},
+  rabbitChannel: {},
 };
 
 export const app = express();
 const port = process.env.PORT || 3000;
 
-export const init = (async () => {
-  DI.orm = await MikroORM.init(mikroOrmConfig);
+export const init = async (config: typeof mikroOrmConfig) => {
+  DI.orm = await MikroORM.init(config);
   DI.em = DI.orm.em;
   DI.authors = DI.orm.em.getRepository(Author);
   DI.books = DI.orm.em.getRepository(Book);
@@ -35,4 +37,6 @@ export const init = (async () => {
   DI.server = app.listen(port, () => {
     console.log(`MikroORM express TS example started at http://localhost:${port}`);
   });
-})();
+
+  await consumeMessages();
+};

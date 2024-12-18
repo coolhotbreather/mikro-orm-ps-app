@@ -1,0 +1,45 @@
+{"level":"info","message":"Creating new author","timestamp":"2024-12-17T14:14:09.079Z"}
+{"level":"info","message":"Message sent to RabbitMQ","messageId":"author-4","timestamp":"2024-12-17T14:14:09.207Z"}
+{"level":"info","message":"Creating new author","timestamp":"2024-12-18T01:21:14.364Z"}
+{"level":"info","message":"Message sent to RabbitMQ","messageId":"author-4","timestamp":"2024-12-18T01:21:14.437Z"}
+{"level":"info","message":"Creating new author","timestamp":"2024-12-18T01:22:51.497Z"}
+{"level":"info","message":"Message sent to RabbitMQ","messageId":"author-4","timestamp":"2024-12-18T01:22:51.532Z"}
+{"level":"info","message":"Creating new author","timestamp":"2024-12-18T01:24:30.970Z"}
+{"level":"info","message":"Message sent to RabbitMQ","messageId":"author-4","timestamp":"2024-12-18T01:24:31.010Z"}
+{"level":"info","message":"Creating new author","timestamp":"2024-12-18T01:28:42.043Z"}
+{"level":"info","message":"Message sent to RabbitMQ","messageId":"author-4","timestamp":"2024-12-18T01:28:42.097Z"}
+{"level":"info","message":"Creating new author","timestamp":"2024-12-18T01:35:32.381Z"}
+{"level":"info","message":"Message sent to RabbitMQ","messageId":"author-4","timestamp":"2024-12-18T01:35:32.429Z"}
+{"level":"info","message":"Creating new author","timestamp":"2024-12-18T01:43:59.493Z"}
+{"level":"info","message":"Message sent to RabbitMQ","messageId":"author-4","timestamp":"2024-12-18T01:43:59.549Z"}
+{"level":"info","message":"Creating new author","timestamp":"2024-12-18T01:47:46.670Z"}
+{"level":"info","message":"Message sent to RabbitMQ","messageId":"author-4","timestamp":"2024-12-18T01:47:46.709Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:03:26.321Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:03:26.334Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:03:26.335Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:03:26.336Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:03:26.336Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:03:26.337Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:03:26.338Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:03:26.338Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:03:29.237Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:04:00.992Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:14:50.618Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:15:49.722Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:18:45.418Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:19:18.844Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:21:03.424Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:39:57.211Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:42:12.690Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T02:43:17.516Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T03:04:40.496Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T03:04:58.162Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T03:05:25.518Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T03:07:46.429Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T03:08:16.447Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T03:08:39.334Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T03:10:51.525Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T03:11:11.192Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T03:12:17.468Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T03:14:19.999Z"}
+{"level":"info","message":"RabbitM | Processing author creation for ID: 4","timestamp":"2024-12-18T03:14:23.767Z"}

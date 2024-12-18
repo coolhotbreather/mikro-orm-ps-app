@@ -10,16 +10,6 @@ import fs from 'fs';
 
 const router = Router();
 
-// router.get('/', async (req: Request, res: Response) => {
-
-//   const books = await DI.books.findAll({
-//     populate: ['author'] as const,
-//     orderBy: { title: QueryOrder.DESC },
-//     limit: 20,
-//   });
-//   res.json(books);
-// });
-
 const AUTHOR = 'author';
 const AUTHOR_ID = 'authorId';
 const DEFAULT_LIST_FIELDS = ['title', 'publicationYear'];
@@ -165,23 +155,27 @@ router.post('/_list', async (req: Request, res: Response) => {
 const upload = multer({ dest: 'uploads/' });
 
 router.post('/upload', upload.single('file'), async (req: Request, res: Response) => {
-  
   const filePath = req.file?.path;
 
   if (!filePath) {
     return res.status(400).json({ message: 'No file uploaded' });
   }
 
-  const { books } = req.body;
   let importedCount = 0;
 
-  if (!Array.isArray(books)) {
-    return res.status(400).json({ message: 'Invalid data format' });
-  }
-
-  await DI.em.begin();
-
   try {
+    // Читаем файл
+    const fileContent = await fs.promises.readFile(filePath, 'utf-8');
+    const books = JSON.parse(fileContent);
+
+    if (!Array.isArray(books)) {
+      throw new Error('Invalid file format: expected an array of books');
+    }
+
+    const em = DI.em.fork();
+
+    await em.begin();
+
     for (const bookData of books) {
       const validationErrors = validateBook(bookData);
 
@@ -189,27 +183,28 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
         throw new Error(`Invalid data for book: ${JSON.stringify(bookData)}`);
       }
 
-      const book = DI.books.create(bookData);
-
-      DI.em.persist(book); //persistAndFLush
+      const book = em.create(Book, bookData);
+      em.persist(book); // Только persist (flush сделаем позже)
       importedCount++;
     }
 
-    await DI.em.commit();
+    await em.flush(); // Сохраняем все изменения разом
+    await em.commit();
 
-    return res.json({
+    return res.status(200).json({
       success: true,
-      importedCount,  
+      importedCount,
     });
-
   } catch (error) {
     await DI.em.rollback();
     console.error('Error during file upload:', error);
     return res.status(500).json({ message: 'Failed to upload data' });
+  } finally {
+    // Удаляем временный файл
+    if (filePath) {
+      await fs.promises.unlink(filePath);
+    }
   }
 });
-
-
-
 
 export const BookController = router;

@@ -31,17 +31,17 @@ router.get('/top', async (req, res) => {
     const n = parseInt(req.query.n) || DEFAULT_TOP_AUTHORS_FILTER_COUNT;
     try {
         const knex = server_1.DI.em.getKnex();
-        const result = await knex('authors') // Начинаем с таблицы authors (Entity2)
-            .leftJoin('books', 'books.author_id', 'authors.id') // Соединяем с таблицей books (Entity1)
-            .select('authors.id', 'authors.name') // Выбираем нужные поля из authors
-            .count('books.id as count') // Подсчитываем количество связанных книг
-            .groupBy('authors.id', 'authors.name') // Группируем по полям authors
+        const result = await knex('author') // Начинаем с таблицы authors (Entity2)
+            .leftJoin('book', 'book.author_id', 'author.id') // Соединяем с таблицей books (Entity1)
+            .select('author.id', 'author.name') // Выбираем нужные поля из authors
+            .count('book.id as count') // Подсчитываем количество связанных книг
+            .groupBy('author.id', 'author.name') // Группируем по полям authors
             .orderBy('count', 'desc') // Сортируем по убыванию количества книг
             .limit(n); // Ограничиваем результат топ-N
         const topAuthors = result.map(row => ({
             id: row.id,
             name: row.name,
-            count: row.count,
+            count: parseInt(row.count, 10),
         }));
         res.json(topAuthors);
     }
